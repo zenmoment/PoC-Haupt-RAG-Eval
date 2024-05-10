@@ -1,0 +1,8 @@
+# Excel results
+*.xlsx
+
+# Excel input
+!important/questions_input.xlsx
+
+# Dependencies
+rag_eval_dep/
