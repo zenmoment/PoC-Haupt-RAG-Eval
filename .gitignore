@@ -6,3 +6,6 @@
 
 # Dependencies
 rag_eval_dep/
+
+# Mac Os
+.DS_Store
