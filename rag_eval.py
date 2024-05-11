@@ -7,19 +7,18 @@ from ragas import evaluate
 from ragas.llms import LangchainLLMWrapper
 from datetime import datetime
 
-
 os.environ["OPENAI_API_VERSION"] = "2023-12-01-preview"
 os.environ["AZURE_OPENAI_ENDPOINT"] = "https://fhsajkdfhsdjahk.openai.azure.com/"
 os.environ["AZURE_OPENAI_API_KEY"] = "78690d521a3f48d2a866f5488a05668e"
 
 # questions_input.xlsx laden
-input_file = "questions_input.xlsx"
+input_file = "questions_input_test.xlsx"
 df = pd.read_excel(input_file)
 
 # Spalten überprüfen
-# required_columns = ["question", "answer", "ground_truth"]
-# if not all(col in df.columns for col in required_columns):
-#     raise ValueError(f"Die Eingabedatei muss die Spalten {', '.join(required_columns)} enthalten.")
+required_columns = ["question", "answer", "ground_truth", "contexts", "Art der Frage", "Buch"]
+if not all(col in df.columns for col in required_columns):
+    raise ValueError(f"Die Eingabedatei muss die Spalten {', '.join(required_columns)} enthalten.")
 
 data_dict = {
         'question': df['question'].tolist(),
@@ -42,7 +41,7 @@ azure_configs = {
     "model_deployment": "chat",
     "model_name": "gpt-35-turbo",
     "embedding_deployment": "embedding",
-    "embedding_name": "text-embedding-ada-002",  # most likely
+    "embedding_name": "text-embedding-ada-002",
 }
 
 azure_model = AzureChatOpenAI(
@@ -53,15 +52,6 @@ azure_model = AzureChatOpenAI(
     api_key=os.getenv("AZURE_OPENAI_API_KEY"), 
     validate_base_url=False,
 )
-
-print("-------------------------")
-print(os.getenv("AZURE_OPENAI_API_KEY"))
-print(azure_configs["base_url"])
-print(azure_configs["model_deployment"])
-print(azure_configs["model_name"])
-print(azure_configs["embedding_deployment"])
-print(azure_configs["embedding_name"])
-print("-------------------------")
 
 ragas_azure_model = LangchainLLMWrapper(azure_model)
 
@@ -84,19 +74,30 @@ answer_relevancy.embeddings = azure_embeddings
 for m in metrics:
     m.__setattr__("llm", ragas_azure_model)
 
-result = evaluate(
-    ds, metrics=metrics
-)
-
-result
-print("-------------------------")
-print(result)
-print("-------------------------")
+results = []
+for i in range(len(ds)):
+    subset = Dataset.from_dict(ds[i:i+1])  # Convert the subset to a Dataset
+    result = evaluate(subset, metrics=metrics)
+    print(result, "index", i)
+    
+    # Ergebnisse in ein Dictionary umwandeln
+    result_dict = {metric: result[metric] for metric in ['faithfulness', 'answer_relevancy', 'context_recall', 'context_precision']}
+    results.append(result_dict)
 
 # Ergebnisse in ragas_result.xlsx speichern
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
 output_file = f"results_{timestamp}.xlsx"
-result_df = pd.DataFrame(result, index=[0])
+
+print("-------------", results)
+result_df = pd.DataFrame(results, columns=['faithfulness', 'answer_relevancy', 'context_recall', 'context_precision'])
+
+# Ergebnisse mit ursprünglichem DataFrame verbinden
+result_df = pd.concat([df, result_df], axis=1)
+
+# Nicht benötigte Spalten entfernen
+columns_to_drop = ['scores', 'dataset', 'binary_columns']
+result_df = result_df.drop(columns=columns_to_drop, errors='ignore')
+
 result_df.to_excel(output_file, index=False)
 
 print(f"Die Ergebnisse wurden in {output_file} gespeichert.")
