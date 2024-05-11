@@ -10,9 +10,6 @@ from ragas.llms import LangchainLLMWrapper
 
 load_dotenv()
 
-# os.environ["AZURE_OPENAI_API_KEY"] = "78690d521a3f48d2a866f5488a05668e"
-# os.environ["AZURE_OPENAI_BASE_URL"] = "https://fhsajkdfhsdjahk.openai.azure.com/"
-
 # questions_input.xlsx laden
 input_file = "questions_input_test.xlsx"
 df = pd.read_excel(input_file)
@@ -45,9 +42,6 @@ azure_configs = {
     "embedding_deployment": "embedding",
     "embedding_name": "text-embedding-ada-002",
 }
-
-print("---------------------------------------------",os.getenv("AZURE_OPENAI_BASE_URL"))
-print("---------------------------------------------",os.getenv("AZURE_OPENAI_API_KEY"))
 
 azure_model = AzureChatOpenAI(
     openai_api_version=azure_configs["openai_api_version"],
