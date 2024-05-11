@@ -1,15 +1,17 @@
 import os
-from datasets.arrow_dataset import Dataset
 import pandas as pd
+from datetime import datetime
+from dotenv import load_dotenv
+from datasets.arrow_dataset import Dataset
 from langchain_openai.chat_models import AzureChatOpenAI
 from langchain_openai.embeddings import AzureOpenAIEmbeddings
 from ragas import evaluate
 from ragas.llms import LangchainLLMWrapper
-from datetime import datetime
 
-os.environ["OPENAI_API_VERSION"] = "2023-12-01-preview"
-os.environ["AZURE_OPENAI_ENDPOINT"] = "https://fhsajkdfhsdjahk.openai.azure.com/"
-os.environ["AZURE_OPENAI_API_KEY"] = "78690d521a3f48d2a866f5488a05668e"
+load_dotenv()
+
+# os.environ["AZURE_OPENAI_API_KEY"] = "78690d521a3f48d2a866f5488a05668e"
+# os.environ["AZURE_OPENAI_BASE_URL"] = "https://fhsajkdfhsdjahk.openai.azure.com/"
 
 # questions_input.xlsx laden
 input_file = "questions_input_test.xlsx"
@@ -37,16 +39,19 @@ from ragas.metrics import (
 )
 
 azure_configs = {
-    "base_url": "https://fhsajkdfhsdjahk.openai.azure.com/",
+    "openai_api_version": "2023-12-01-preview",
     "model_deployment": "chat",
     "model_name": "gpt-35-turbo",
     "embedding_deployment": "embedding",
     "embedding_name": "text-embedding-ada-002",
 }
 
+print("---------------------------------------------",os.getenv("AZURE_OPENAI_BASE_URL"))
+print("---------------------------------------------",os.getenv("AZURE_OPENAI_API_KEY"))
+
 azure_model = AzureChatOpenAI(
-    openai_api_version="2023-12-01-preview",
-    azure_endpoint=azure_configs["base_url"],
+    openai_api_version=azure_configs["openai_api_version"],
+    azure_endpoint=os.getenv("AZURE_OPENAI_BASE_URL"),
     azure_deployment=azure_configs["model_deployment"],
     model=azure_configs["model_name"],
     api_key=os.getenv("AZURE_OPENAI_API_KEY"), 
@@ -57,8 +62,8 @@ ragas_azure_model = LangchainLLMWrapper(azure_model)
 
 # init the embeddings for answer_relevancy, answer_correctness and answer_similarity
 azure_embeddings = AzureOpenAIEmbeddings(
-    openai_api_version="2023-12-01-preview",
-    azure_endpoint=azure_configs["base_url"],
+    openai_api_version=azure_configs["openai_api_version"],
+    azure_endpoint=os.getenv("AZURE_OPENAI_BASE_URL"),
     azure_deployment=azure_configs["embedding_deployment"],
     model=azure_configs["embedding_name"],
 )
