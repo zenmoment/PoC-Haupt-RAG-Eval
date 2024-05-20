@@ -11,11 +11,11 @@ from ragas.llms import LangchainLLMWrapper
 load_dotenv()
 
 # questions_input.xlsx laden
-input_file = "questions_input_test.xlsx"
+input_file = "input_gpt4_v01.xlsx"
 df = pd.read_excel(input_file)
 
 # Spalten überprüfen
-required_columns = ["question", "answer", "ground_truth", "contexts", "Art der Frage", "Buch"]
+required_columns = ["question", "answer", "ground_truth", "contexts", "Buch"]
 if not all(col in df.columns for col in required_columns):
     raise ValueError(f"Die Eingabedatei muss die Spalten {', '.join(required_columns)} enthalten.")
 
@@ -37,8 +37,8 @@ from ragas.metrics import (
 
 azure_configs = {
     "openai_api_version": "2023-12-01-preview",
-    "model_deployment": "chat",
-    "model_name": "gpt-35-turbo",
+    "model_deployment": "ragas",
+    "model_name": "gpt-4",
     "embedding_deployment": "embedding",
     "embedding_name": "text-embedding-ada-002",
 }
@@ -85,17 +85,13 @@ for i in range(len(ds)):
 
 # Ergebnisse in ragas_result.xlsx speichern
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-output_file = f"results_{timestamp}.xlsx"
+output_file = f"results_gpt4_v01_{timestamp}_eval_gpt4.xlsx"
 
 print("-------------", results)
 result_df = pd.DataFrame(results, columns=['faithfulness', 'answer_relevancy', 'context_recall', 'context_precision'])
 
 # Ergebnisse mit ursprünglichem DataFrame verbinden
 result_df = pd.concat([df, result_df], axis=1)
-
-# Nicht benötigte Spalten entfernen
-columns_to_drop = ['scores', 'dataset', 'binary_columns']
-result_df = result_df.drop(columns=columns_to_drop, errors='ignore')
 
 result_df.to_excel(output_file, index=False)
 

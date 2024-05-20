@@ -5,10 +5,10 @@
 !important/questions_input.xlsx
 
 # Dependencies
-rag_eval_dep/
+rag_eval_venv/
 
 # Mac Os
 .DS_Store
 
 # Environment variables
-.env
+*.env
