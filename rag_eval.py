@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv
@@ -10,8 +11,14 @@ from ragas.llms import LangchainLLMWrapper
 
 load_dotenv()
 
+# Überprüfen, ob der Dateiname als Argument übergeben wurde
+if len(sys.argv) < 2:
+    print("Bitte geben Sie den Namen der Eingabedatei als Argument an.")
+    sys.exit(1)
+
+input_file = sys.argv[1]
+
 # questions_input.xlsx laden
-input_file = "input_gpt4_v01.xlsx"
 df = pd.read_excel(input_file)
 
 # Spalten überprüfen
@@ -85,7 +92,8 @@ for i in range(len(ds)):
 
 # Ergebnisse in ragas_result.xlsx speichern
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-output_file = f"results_gpt4_v01_{timestamp}_eval_gpt4.xlsx"
+input_file_name = os.path.splitext(input_file)[0]
+output_file = f"{input_file_name}_results_{timestamp}_eval_gpt4.xlsx"
 
 print("-------------", results)
 result_df = pd.DataFrame(results, columns=['faithfulness', 'answer_relevancy', 'context_recall', 'context_precision'])
